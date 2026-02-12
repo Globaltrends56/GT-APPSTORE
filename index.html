@@ -11,7 +11,7 @@
         
         .brand-header { text-align: center; padding: 25px; }
         .brand-link { text-decoration: none; color: var(--primary); font-size: 26px; font-weight: 800; }
-        .search-box { padding: 0 20px 20px; max-width: 500px; margin: 0 auto; }
+        .search-box { padding: 0 20px; max-width: 500px; margin: 0 auto; }
         .search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: 1px solid #2d3748; background: #1c2533; color: white; outline: none; box-sizing: border-box; }
         
         .shelf-title { padding: 20px 20px 0; font-size: 18px; font-weight: 700; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
@@ -42,11 +42,12 @@
 
     <div id="toast"></div>
 
+    <header style="position: sticky; top: 0; background: var(--bg); z-index: 800; padding-bottom: 10px;">
     <div class="brand-header"><a href="/" class="brand-link">ɢᴛ ᴀᴘᴘꜱᴛᴏʀᴇ</a></div>
-
     <div class="search-box">
         <input type="text" id="searchInput" class="search-input" placeholder="Search apps..." oninput="searchApps()">
     </div>
+    </header>
 
     <div id="store-front"></div>
 
