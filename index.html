@@ -64,8 +64,8 @@
 
     <script>
     // --- INSERT YOUR CREDENTIALS HERE ---
-    const SUPABASE_URL = 'https://your-project-id.supabase.co'; 
-    const SUPABASE_KEY = 'your-anon-public-key-here';
+    const SUPABASE_URL = 'https://dgutisejlixevktsqdaq.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndXRpc2VqbGl4ZXZrdHNxZGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTc3NjUsImV4cCI6MjA4NjQ3Mzc2NX0.Ci6qm5_yOXMgGvQtbjVIHu_AVRFC8E6uwtTpOhOFQJg';
     
     // This connects your website to your Supabase project
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -134,7 +134,13 @@
             </div>
             <button class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
             <div class="screenshot-row">${app.app_screenshots.map(s => `<img src="${s.image_url}">`).join('')}</div>
-            <p style="color:#94a3b8; line-height:1.6;">${app.description || 'No description provided.'}</p>
+            <h3 style="margin-top:30px; border-bottom: 1px solid #2d3748; padding-bottom: 10px;">What's New</h3>
+<p style="color:var(--primary); line-height:1.6; font-size:14px; background: rgba(0, 209, 178, 0.05); padding: 15px; border-radius: 12px;">
+    ${app.whats_new || 'Bug fixes and performance improvements.'}
+</p>
+
+<h3 style="margin-top:30px;">About this app</h3>
+<p style="color:#94a3b8; line-height:1.6; font-size:14px;">${app.description || 'No description provided.'}</p>
         `;
 
         // Similar Apps (Same category)
