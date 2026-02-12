@@ -260,6 +260,33 @@
     }
 
     init();
+
+    function filterByDeveloper(devName) {
+    // 1. Close the current app detail page
+    closeDetail();
+
+    // 2. Filter the apps list
+    const devApps = allApps.filter(a => a.developer === devName);
+
+    // 3. Update the search bar text so the user knows what happened
+    document.getElementById('searchInput').value = devName;
+
+    // 4. Re-render the store front with only these apps
+    const container = document.getElementById('store-front');
+    container.innerHTML = `<div class="shelf-title">Apps by ${devName}</div>`;
+    
+    // Reuse your existing renderRow logic
+    const row = document.createElement('div');
+    row.className = 'app-row';
+    row.innerHTML = devApps.map(app => `
+        <div class="app-item" onclick="openDetail(${app.id})">
+            <img src="${app.app_logo_url}">
+            <p>${app.app_name}</p>
+        </div>
+    `).join('');
+    
+    container.appendChild(row);
+            }
     </script>
 </body>
 </html>
