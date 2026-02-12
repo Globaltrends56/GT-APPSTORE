@@ -144,8 +144,11 @@
             <div>
                 <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
                 <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
-                    ${app.category} ~ ${app.developer || 'GT Admin'}
-                </p>
+    ${app.category} ~ 
+    <span onclick="filterByDeveloper('${app.developer}')" style="text-decoration:underline; cursor:pointer;">
+        ${app.developer || 'METADATA'}
+    </span>
+</p>
             </div>
         </div>
         ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE APP</button>` : ''}
