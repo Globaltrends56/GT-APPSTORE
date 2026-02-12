@@ -62,12 +62,25 @@
         <div id="detail-suggested-row" class="app-row"></div>
     </div>
 
-<script>
-    const _supabase = supabase.createClient('URL', 'KEY');
+    <script>
+    // --- INSERT YOUR CREDENTIALS HERE ---
+    const SUPABASE_URL = 'https://your-project-id.supabase.co'; 
+    const SUPABASE_KEY = 'your-anon-public-key-here';
+    
+    // This connects your website to your Supabase project
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     let allApps = [];
 
     async function init() {
-        const { data } = await _supabase.from('app_versions').select('*, app_screenshots(*)');
+        // Fetch all apps and their screenshots from your database
+        const { data, error } = await _supabase.from('app_versions').select('*, app_screenshots(*)');
+        
+        if (error) {
+            console.error("Error fetching data:", error);
+            return;
+        }
+
         allApps = data;
 
         // Row 1: Top Ranked (Sorted by downloads)
@@ -78,13 +91,19 @@
         const suggested = allApps.slice().reverse().slice(0, 10);
         renderRow(suggested, 'suggested-row');
 
-        // Row 3: New Releases (By date)
+        // Row 3: New Releases (Sorted by newest first)
         const newApps = [...allApps].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
         renderRow(newApps, 'new-releases-row');
     }
 
+    // --- REST OF THE FUNCTIONS (renderRow, openDetail, etc.) ---
     function renderRow(apps, elementId) {
-        document.getElementById(elementId).innerHTML = apps.map(app => `
+        const row = document.getElementById(elementId);
+        if (apps.length === 0) {
+            row.innerHTML = '<p style="color:#666; padding-left:20px;">Coming soon...</p>';
+            return;
+        }
+        row.innerHTML = apps.map(app => `
             <div class="app-item" onclick="openDetail(${app.id})">
                 <img src="${app.app_logo_url}">
                 <p>${app.app_name}</p>
@@ -96,7 +115,7 @@
         const app = allApps.find(a => a.id === id);
         const detailPage = document.getElementById('detail-page');
         
-        // Update Stats and Button (Download/Update/Open logic)
+        // Button Logic: Download vs Update vs Open
         const localVer = localStorage.getItem('v_' + app.package_name);
         let btnText = "Download";
         if (localVer) {
@@ -106,38 +125,43 @@
         document.getElementById('detail-content').innerHTML = `
             <div style="display:flex; gap:20px; align-items:center;">
                 <img src="${app.app_logo_url}" style="width:80px; border-radius:20px;">
-                <h1>${app.app_name}</h1>
+                <h1 style="margin:0;">${app.app_name}</h1>
             </div>
             <div class="stats-bar">
-                <div><b>${app.download_count}</b><br><small>Installs</small></div>
-                <div><b>${app.pegi_rating}</b><br><small>PEGI</small></div>
-                <div><b>${app.star_rating}★</b><br><small>Rating</small></div>
+                <div class="stat-item"><span class="stat-value">${app.download_count}</span>Installs</div>
+                <div class="stat-item"><span class="stat-value">${app.pegi_rating || '3+'}</span>PEGI</div>
+                <div class="stat-item"><span class="stat-value">${app.star_rating || '4.5'}★</span>Rating</div>
             </div>
             <button class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
             <div class="screenshot-row">${app.app_screenshots.map(s => `<img src="${s.image_url}">`).join('')}</div>
-            <p>${app.description}</p>
+            <p style="color:#94a3b8; line-height:1.6;">${app.description || 'No description provided.'}</p>
         `;
 
         // Similar Apps (Same category)
         const similar = allApps.filter(a => a.category === app.category && a.id !== app.id);
         renderRow(similar, 'similar-row');
 
-        // Suggested Apps for Detail (Exclude current)
+        // Suggested Apps for Detail
         const moreSuggested = allApps.filter(a => a.id !== app.id).slice(0, 10);
         renderRow(moreSuggested, 'detail-suggested-row');
 
         detailPage.style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
     async function downloadApp(url, pkg, code) {
+        // This calls the SQL function we made earlier
         await _supabase.rpc('increment_downloads', { app_package: pkg });
         window.location.href = url;
         localStorage.setItem('v_' + pkg, code);
         setTimeout(() => location.reload(), 2000);
     }
 
-    function closeDetail() { document.getElementById('detail-page').style.display = 'none'; }
+    function closeDetail() { 
+        document.getElementById('detail-page').style.display = 'none'; 
+        document.body.style.overflow = 'auto';
+    }
+
     init();
-</script>
+    </script>
 </body>
-</html>
