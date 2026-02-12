@@ -8,7 +8,14 @@
     <style>
         :root { --primary: #00d1b2; --bg: #0b0f19; --card: #1c2533; --text: #f8fafc; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 80px; }
-        
+        /* This hides the vertical scroll bar line on the right */
+body::-webkit-scrollbar {
+    display: none;
+}
+body {
+    -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+    scrollbar-width: none;  /* For Firefox */
+}
         .brand-header { text-align: center; padding: 25px; }
         .brand-link { text-decoration: none; color: var(--primary); font-size: 26px; font-weight: 800; }
         .search-box { padding: 0 20px; max-width: 500px; margin: 0 auto; }
