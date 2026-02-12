@@ -137,23 +137,31 @@
         let btnText = "Download";
         if (localVer) { btnText = parseInt(localVer) < app.version_code ? "Update" : "Open App"; }
 
-        document.getElementById('detail-content').innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div style="display:flex; gap:20px; align-items:center;">
-                    <img src="${app.app_logo_url}" style="width:80px; height:80px; border-radius:20px; object-fit:cover;">
-                    <div>
-                        <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
-                        <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">${app.category || 'General'}</p>
-                    </div>
-                </div>
-                ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE APP</button>` : ''}
+           document.getElementById('detail-content').innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div style="display:flex; gap:20px; align-items:center;">
+            <img src="${app.app_logo_url}" style="width:80px; height:80px; border-radius:20px; object-fit:cover;">
+            <div>
+                <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
+                <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
+                    ${app.category} ~ ${app.developer || 'GT Admin'}
+                </p>
             </div>
+        </div>
+        ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE APP</button>` : ''}
+    </div>
 
-            <div class="stats-bar">
-                <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.download_count}</span>Installs</div>
-                <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.pegi_rating || '3+'}</span>PEGI</div>
-                <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.star_rating || '4.5'}★</span>Rating</div>
-            </div>
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span style="display:block; font-weight:bold; font-size:16px;">
+                ${app.download_count || 0}
+            </span>Installs
+        </div>
+        <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.pegi_rating || '3+'}</span>PEGI</div>
+        <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.star_rating || '4.5'}★</span>Rating</div>
+    </div>
+    ...
+`;
 
             <button class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
             
