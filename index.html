@@ -186,7 +186,12 @@ body {
             </div>
 
             <div class="stats-bar">
-                <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.download_count || 0}</span>Installs</div>
+                <div class="stat-item">
+    <span id="install-count" style="display:block; font-weight:bold; font-size:16px;">
+        ${app.download_count || 0}
+                 </span>
+                   Installs
+                       </div>
                 <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.pegi_rating || '3+'}</span>PEGI</div>
                 <div class="stat-item"><span style="display:block; font-weight:bold; font-size:16px;">${app.star_rating || '4.5'}★</span>Rating</div>
             </div>
@@ -255,28 +260,38 @@ body {
     }
 
     async function downloadApp(url, pkg, code) {
-        const btn = document.getElementById('action-btn');
-        
-        if (btn.innerText === "Open App") {
-            showToast("Opening app...");
-            window.location.href = url;
-            return;
-        }
-
-        showToast("📥 Starting Download...");
-        btn.innerText = "Downloading...";
-        
-        await _supabase.rpc('increment_downloads', { app_package: pkg });
+    const btn = document.getElementById('action-btn');
+    const countElement = document.getElementById('install-count'); // We'll add this ID below
+    
+    if (btn.innerText === "Open App") {
         window.location.href = url;
+        return;
+    }
 
-        // Save version ONLY after they start the download
-        localStorage.setItem('v_' + pkg, code);
+    showToast("📥 Starting Download...");
+    btn.innerText = "Downloading...";
+
+    // LIVE UI UPDATE: Update the number on the screen immediately
+    if (countElement) {
+        let currentCount = parseInt(countElement.innerText.replace(/,/g, '')) || 0;
+        countElement.innerText = (currentCount + 1).toLocaleString();
+    }
+
+    try {
+        // DATABASE UPDATE: Tell Supabase to add +1
+        await _supabase.rpc('increment_downloads', { app_package: pkg });
         
+        // Trigger the actual file download
+        window.location.href = url;
+        localStorage.setItem('v_' + pkg, code);
+
         setTimeout(() => {
             btn.innerText = "Open App";
         }, 3000);
+    } catch (err) {
+        console.error("Could not update count:", err);
     }
-
+                            }
     function closeDetail() { 
         document.getElementById('detail-page').style.display = 'none'; 
         document.body.style.overflow = 'auto';
