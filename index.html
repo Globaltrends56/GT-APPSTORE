@@ -174,7 +174,7 @@
                 <div>
                     <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
                     <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
-                        ${app.category} ~ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
+                        ${app.category} ・ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
                     </p>
                 </div>
             </div>
@@ -262,7 +262,7 @@
 
     async function downloadApp(url, pkg, code) {
         const btn = document.getElementById('action-btn');
-        if (btn.innerText === "Open App") { window.location.href = url; return; }
+        if (btn.innerText === "Installed") { window.location.href = url; return; }
         showToast("Starting Download...");
         btn.innerText = "Downloading...";
         const countEl = document.getElementById('install-count');
