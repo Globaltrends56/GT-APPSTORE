@@ -33,7 +33,29 @@ body {
     /* Hides line for IE/Edge */
     -ms-overflow-style: none; 
 }
+/* ADD THIS TO YOUR STYLE SECTION */
 
+/* The Shimmer Animation */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.shimmer-box {
+    background: linear-gradient(90deg, #1c2533 25%, #2d3748 50%, #1c2533 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Ensure the app-item images are ready for the fade-in */
+.app-item img {
+    width: 100px; 
+    height: 100px; 
+    border-radius: 20px; 
+    object-fit: cover;
+    opacity: 0; /* Hidden until loaded */
+    transition: opacity 0.5s ease-in; /* Smooth fade in */
+}
 /* 2. This hides the line for Chrome, Safari, and Opera */
 .app-row::-webkit-scrollbar { 
     display: none; 
@@ -62,6 +84,13 @@ body {
 </head>
 <body>
 
+    <div id="offline-screen" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:10000; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+    <div style="font-size: 80px; margin-bottom: 20px;">📶</div>
+    <h1 style="color:white; margin:0;">No Internet</h1>
+    <p style="color:#94a3b8; margin:10px 0 25px;">Please check your connection and try again.</p>
+    <button onclick="location.reload()" style="background:var(--primary); border:none; color:white; padding:15px 40px; border-radius:30px; font-weight:bold; cursor:pointer;">Retry</button>
+     </div>
+    
     <div id="toast"></div>
 
     <header style="position: sticky; top: 0; background: var(--bg); z-index: 800; padding-bottom: 10px;">
@@ -142,25 +171,14 @@ body {
     }
 
     function createShelf(container, title, apps) {
-        container.innerHTML += `
-            <div class="shelf-title">${title}</div>
-            <div class="app-row">
-                ${apps.map(app => `
-                    <div class="app-item" onclick="openDetail(${app.id})">
-                        <img src="${app.app_logo_url}">
-                        <p>${app.app_name}</p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
+    
 
     function searchApps() {
         const query = document.getElementById('searchInput').value.toLowerCase();
         const filtered = allApps.filter(a => a.app_name.toLowerCase().includes(query));
         renderHome(filtered);
     }
-
+    
     function openDetail(id) {
         const app = allApps.find(a => a.id === id);
         const detailPage = document.getElementById('detail-page');
@@ -170,7 +188,21 @@ body {
         if (localVer) {
             btnText = parseInt(localVer) < app.version_code ? "Update" : "Open App";
         }
-
+   function createShelf(container, title, apps) {
+    container.innerHTML += `
+        <div class="shelf-title">${title}</div>
+        <div class="app-row">
+            ${apps.map(app => `
+                <div class="app-item" onclick="openDetail(${app.id})">
+                    <div class="shimmer-box" style="width:100px; height:100px; border-radius:20px; margin: 0 auto;">
+                        <img src="${app.app_logo_url}" onload="this.style.opacity='1'">
+                    </div>
+                    <p>${app.app_name}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+   } 
         document.getElementById('detail-content').innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div style="display:flex; gap:20px; align-items:center;">
@@ -308,6 +340,19 @@ body {
     }
 
     init();
+        // Monitor Internet Connection
+function checkConnection() {
+    const offline = document.getElementById('offline-screen');
+    if (!navigator.onLine) {
+        offline.style.display = 'flex';
+    } else {
+        offline.style.display = 'none';
+    }
+}
+
+window.addEventListener('online', checkConnection);
+window.addEventListener('offline', checkConnection);
+checkConnection(); // Check immediately on load
     </script>
 </body>
 </html>
