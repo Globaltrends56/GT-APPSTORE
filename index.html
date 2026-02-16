@@ -151,41 +151,87 @@
     }
 
     function openDetail(id) {
-        const app = allApps.find(a => a.id === id);
-        const detailPage = document.getElementById('detail-page');
-        const localVer = localStorage.getItem('v_' + app.package_name);
-        let btnText = (localVer && parseInt(localVer) >= app.version_code) ? "Open App" : (localVer ? "Update" : "Download");
-
-        document.getElementById('detail-content').innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div style="display:flex; gap:20px; align-items:center;">
-                    <img src="${app.app_logo_url}" style="width:80px; height:80px; border-radius:20px; object-fit:cover;">
-                    <div>
-                        <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
-                        <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
-    ${app.category} ~ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
-</p>
-                    </div>
-                </div>
-                ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE</button>` : ''}
-            </div>
-            <div class="stats-bar">
-                <div class="stat-item"><span id="install-count" style="display:block; font-weight:bold;">${app.download_count || 0}</span>Installs</div>
-                <div class="stat-item"><span style="display:block; font-weight:bold;">${app.star_rating || '4.5'}★</span>Rating</div>
-            </div>
-            <button id="action-btn" class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
-            <div class="screenshot-row">
-                ${app.app_screenshots.map(s => `<div style="position:relative;"><img src="${s.image_url}">${isAdmin ? `<button onclick="deleteScreenshot(${s.id})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:25px; height:25px;">✕</button>` : ''}</div>`).join('')}
-                ${isAdmin ? `<div style="min-width:150px; height:250px; border:2px dashed #334155; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px;"><input type="text" id="new-ss-url" placeholder="URL"><button onclick="addScreenshot(${app.id})">+ Add</button></div>` : ''}
-            </div>
-            <h3 style="margin-top:30px;">About this app</h3>
-            <p style="color:#94a3b8; line-height:1.6; font-size:14px;">${app.description || 'No description provided.'}</p>`;
-        
-        const similar = allApps.filter(a => a.category === app.category && a.id !== app.id);
-        renderRow(similar, 'similar-row');
-        detailPage.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+    const app = allApps.find(a => a.id === id);
+    const detailPage = document.getElementById('detail-page');
+    const localVer = localStorage.getItem('v_' + app.package_name);
+    
+    let btnText = "Download";
+    if (localVer) {
+        btnText = parseInt(localVer) < app.version_code ? "Update" : "Open App";
     }
+
+    document.getElementById('detail-content').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div class="shimmer-box" style="width:80px; height:80px; border-radius:20px;">
+                    <img src="${app.app_logo_url}" onload="this.style.opacity='1'" style="width:80px; height:80px; border-radius:20px; object-fit:cover; opacity:0; transition:opacity 0.5s;">
+                </div>
+                <div>
+                    <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
+                    <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
+                        ${app.category} ~ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
+                    </p>
+                </div>
+            </div>
+            ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE APP</button>` : ''}
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span id="install-count" style="display:block; font-weight:bold; font-size:16px;">${app.download_count || 0}</span>
+                Installs
+            </div>
+            
+            <div class="stat-item">
+                <span style="display:inline-block; border: 1.5px solid #94a3b8; padding: 1px 4px; border-radius: 4px; font-weight:bold; font-size:13px; margin-bottom: 2px;">
+                    ${app.pegi_rating || '3+'}
+                </span>
+                <span style="display:block;">PEGI</span>
+            </div>
+
+            <div class="stat-item">
+                <span style="display:block; font-weight:bold; font-size:16px;">${app.star_rating || '4.5'}★</span>
+                Rating
+            </div>
+        </div>
+
+        <button id="action-btn" class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
+        
+        <div class="screenshot-row">
+            ${app.app_screenshots.map(s => `
+                <div class="shimmer-box" style="height:250px; min-width:140px; border-radius:12px; position:relative;">
+                    <img src="${s.image_url}" onload="this.style.opacity='1'" style="height:250px; border-radius:12px; opacity:0; transition:opacity 0.5s;">
+                    ${isAdmin ? `<button onclick="deleteScreenshot(${s.id})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:25px; height:25px; cursor:pointer; z-index:10;">✕</button>` : ''}
+                </div>
+            `).join('')}
+            
+            ${isAdmin ? `
+                <div style="min-width:150px; height:250px; border:2px dashed #334155; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px;">
+                    <input type="text" id="new-ss-url" placeholder="Image URL" style="width:80%; margin-bottom:10px; padding:5px; border-radius:5px; border:none; background:#2d3748; color:white;">
+                    <button onclick="addScreenshot(${app.id})" style="background:var(--primary); border:none; color:white; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">+ Add</button>
+                </div>` : ''}
+        </div>
+
+        <h3 style="margin-top:30px; border-bottom: 1px solid #2d3748; padding-bottom: 10px;">What's New</h3>
+        <div style="color:var(--primary); line-height:1.6; font-size:14px; background: rgba(0, 209, 178, 0.08); padding: 15px; border-radius: 12px; border-left: 4px solid var(--primary);">
+            ${app.whats_new || 'Performance improvements and bug fixes.'}
+        </div>
+
+        <h3 style="margin-top:30px;">About this app</h3>
+        <p style="color:#94a3b8; line-height:1.6; font-size:14px;">${app.description || 'No description provided.'}</p>
+    `;
+
+    // Trigger Recommendations
+    const similar = allApps.filter(a => a.category === app.category && a.id !== app.id);
+    renderRow(similar, 'similar-row');
+    
+    const recommended = allApps.filter(a => a.id !== app.id).sort(() => 0.5 - Math.random()).slice(0, 8);
+    renderRow(recommended, 'recommended-row');
+
+    detailPage.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+                                }
+    
 
     function renderRow(apps, elementId) {
         document.getElementById(elementId).innerHTML = apps.map(app => `
