@@ -22,11 +22,13 @@
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite linear;
             border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .app-item img { 
             width: 100px; height: 100px; border-radius: 20px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); object-fit: cover; 
-            opacity: 0; transition: opacity 0.5s ease; /* Fade-in effect */
+            object-fit: cover; opacity: 0; transition: opacity 0.5s ease;
         }
 
         .brand-header { text-align: center; padding: 25px; }
@@ -45,15 +47,14 @@
         .nav-btn { border: none; background: none; color: #94a3b8; padding: 10px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .nav-btn.active { background: var(--primary); color: white; }
 
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 2000; display: none; border: 1px solid var(--primary); animation: fadeInUp 0.3s ease; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 2000; display: none; border: 1px solid var(--primary); }
 
         #detail-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .stats-bar { display: flex; justify-content: space-around; background: #1c2533; padding: 15px; border-radius: 15px; margin: 20px 0; }
         .screenshot-row { display: flex; overflow-x: auto; gap: 10px; margin: 20px 0; scrollbar-width: none; }
         .screenshot-row img { height: 250px; border-radius: 12px; }
         .btn-action { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-delete { background: #ef4444; color: white; padding: 10px; border-radius: 10px; border: none; cursor: pointer; font-size: 12px; margin-top: 10px; }
+        .btn-delete { background: #ef4444; color: white; padding: 8px 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -77,7 +78,7 @@
     <div id="offline-screen" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:10000; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
         <div style="font-size: 60px; margin-bottom: 20px;">📶</div>
         <h2 style="color:white;">No Internet Connection</h2>
-        <p style="color:#94a3b8;">Please check your data or WiFi settings.</p>
+        <p style="color:#94a3b8;">Check your connection or get notified when you're back online.</p>
         <button onclick="location.reload()" style="margin-top:20px; background:var(--primary); border:none; color:white; padding:12px 30px; border-radius:25px; font-weight:bold;">Retry</button>
     </div>
 
@@ -86,8 +87,6 @@
         <div id="detail-content"></div>
         <div class="shelf-title">Similar Apps</div>
         <div id="similar-row" class="app-row"></div>
-        <div class="shelf-title">ˢᵖᵒⁿˢᵒʳᵉᵈ・Recommended for you</div>
-        <div id="recommended-row" class="app-row"></div>
         <div style="height: 50px;"></div> 
     </div>
 
@@ -95,6 +94,7 @@
     const SUPABASE_URL = 'https://dgutisejlixevktsqdaq.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndXRpc2VqbGl4ZXZrdHNxZGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTc3NjUsImV4cCI6MjA4NjQ3Mzc2NX0.Ci6qm5_yOXMgGvQtbjVIHu_AVRFC8E6uwtTpOhOFQJg';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_PASSWORD = "GT-ADMIN-2026"; 
     
     let allApps = [];
     let currentTab = 'Apps';
@@ -102,8 +102,7 @@
 
     function showToast(msg) {
         const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.display = 'block';
+        t.innerText = msg; t.style.display = 'block';
         setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
 
@@ -111,14 +110,13 @@
         const { data, error } = await _supabase.from('app_versions').select('*, app_screenshots(*)');
         if (error) { showToast("Error loading data"); return; }
         allApps = data;
-        renderHome(allApps.filter(a => a.category !== 'Games'));
+        switchTab('Apps');
     }
 
     function switchTab(tab) {
         currentTab = tab;
         document.getElementById('btn-apps').classList.toggle('active', tab === 'Apps');
         document.getElementById('btn-games').classList.toggle('active', tab === 'Games');
-        
         let filtered = (tab === 'Games') ? allApps.filter(a => a.category === 'Games') : allApps.filter(a => a.category !== 'Games');
         renderHome(filtered);
     }
@@ -130,16 +128,10 @@
             container.innerHTML = '<p style="text-align:center; opacity:0.5; padding:50px;">No items found.</p>';
             return;
         }
-
-        const topRanked = [...appsToRender].sort((a,b) => b.download_count - a.download_count).slice(0, 8);
-        createShelf(container, `Top ${currentTab}`, topRanked);
-
+        createShelf(container, `Top ${currentTab}`, [...appsToRender].sort((a,b) => b.download_count - a.download_count).slice(0, 8));
         const categories = [...new Set(appsToRender.map(a => a.category))];
         categories.forEach(cat => {
-            if(cat) {
-                const catApps = appsToRender.filter(a => a.category === cat);
-                createShelf(container, cat + " " + (currentTab === 'Games' ? '' : 'Apps'), catApps);
-            }
+            if(cat) createShelf(container, cat + (currentTab === 'Games' ? '' : ' Apps'), appsToRender.filter(a => a.category === cat));
         });
     }
 
@@ -155,58 +147,48 @@
                         <p>${app.app_name}</p>
                     </div>
                 `).join('')}
-            </div>
-        `;
-    }
-
-    function searchApps() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allApps.filter(a => a.app_name.toLowerCase().includes(query));
-        renderHome(filtered);
+            </div>`;
     }
 
     function openDetail(id) {
         const app = allApps.find(a => a.id === id);
         const detailPage = document.getElementById('detail-page');
         const localVer = localStorage.getItem('v_' + app.package_name);
-        
-        let btnText = "Download";
-        if (localVer) {
-            btnText = parseInt(localVer) < app.version_code ? "Update" : "Open App";
-        }
+        let btnText = (localVer && parseInt(localVer) >= app.version_code) ? "Open App" : (localVer ? "Update" : "Download");
 
         document.getElementById('detail-content').innerHTML = `
-            <div style="display:flex; gap:20px; align-items:center;">
-                <img src="${app.app_logo_url}" style="width:80px; height:80px; border-radius:20px; object-fit:cover;">
-                <div>
-                    <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
-                    <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">${app.category}</p>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="display:flex; gap:20px; align-items:center;">
+                    <img src="${app.app_logo_url}" style="width:80px; height:80px; border-radius:20px; object-fit:cover;">
+                    <div>
+                        <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
+                        <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
+    ${app.category} ~ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
+</p>
+                    </div>
                 </div>
+                ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE</button>` : ''}
             </div>
-
             <div class="stats-bar">
                 <div class="stat-item"><span id="install-count" style="display:block; font-weight:bold;">${app.download_count || 0}</span>Installs</div>
                 <div class="stat-item"><span style="display:block; font-weight:bold;">${app.star_rating || '4.5'}★</span>Rating</div>
             </div>
-
             <button id="action-btn" class="btn-action" onclick="downloadApp('${app.apk_url}', '${app.package_name}', ${app.version_code})">${btnText}</button>
-            
             <div class="screenshot-row">
-                ${app.app_screenshots.map(s => `<img src="${s.image_url}">`).join('')}
+                ${app.app_screenshots.map(s => `<div style="position:relative;"><img src="${s.image_url}">${isAdmin ? `<button onclick="deleteScreenshot(${s.id})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:25px; height:25px;">✕</button>` : ''}</div>`).join('')}
+                ${isAdmin ? `<div style="min-width:150px; height:250px; border:2px dashed #334155; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px;"><input type="text" id="new-ss-url" placeholder="URL"><button onclick="addScreenshot(${app.id})">+ Add</button></div>` : ''}
             </div>
-
             <h3 style="margin-top:30px;">About this app</h3>
-            <p style="color:#94a3b8; line-height:1.6; font-size:14px;">${app.description || 'No description provided.'}</p>
-        `;
-
+            <p style="color:#94a3b8; line-height:1.6; font-size:14px;">${app.description || 'No description provided.'}</p>`;
+        
         const similar = allApps.filter(a => a.category === app.category && a.id !== app.id);
         renderRow(similar, 'similar-row');
         detailPage.style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
     function renderRow(apps, elementId) {
-        const row = document.getElementById(elementId);
-        row.innerHTML = apps.map(app => `
+        document.getElementById(elementId).innerHTML = apps.map(app => `
             <div class="app-item" onclick="openDetail(${app.id})">
                 <div class="shimmer-box" style="width:100px; height:100px; margin:0 auto;">
                     <img src="${app.app_logo_url}" onload="this.style.opacity='1'">
@@ -215,16 +197,75 @@
             </div>`).join('');
     }
 
-    function closeDetail() { document.getElementById('detail-page').style.display = 'none'; document.body.style.overflow = 'auto'; }
-
-    // Connectivity Check Logic
-    function updateOnlineStatus() {
-        document.getElementById('offline-screen').style.display = navigator.onLine ? "none" : "flex";
+    async function downloadApp(url, pkg, code) {
+        const btn = document.getElementById('action-btn');
+        if (btn.innerText === "Open App") { window.location.href = url; return; }
+        showToast("📥 Starting Download...");
+        btn.innerText = "Downloading...";
+        const countEl = document.getElementById('install-count');
+        if (countEl) countEl.innerText = (parseInt(countEl.innerText) + 1).toLocaleString();
+        await _supabase.rpc('increment_downloads', { app_package: pkg });
+        window.location.href = url;
+        localStorage.setItem('v_' + pkg, code);
+        setTimeout(() => { btn.innerText = "Open App"; }, 3000);
     }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
 
+    async function deleteApp(id) {
+        if (prompt("Password:") !== ADMIN_PASSWORD) return showToast("Wrong Password!");
+        if (confirm("Delete app?")) {
+            await _supabase.from('app_screenshots').delete().eq('app_id', id);
+            await _supabase.from('app_versions').delete().eq('id', id);
+            location.reload();
+        }
+    }
+
+    async function addScreenshot(appId) {
+        const url = document.getElementById('new-ss-url').value;
+        if (prompt("Password:") !== ADMIN_PASSWORD) return showToast("Wrong Password!");
+        await _supabase.from('app_screenshots').insert([{ app_id: appId, image_url: url }]);
+        location.reload();
+    }
+
+    async function deleteScreenshot(sId) {
+        if (prompt("Password:") !== ADMIN_PASSWORD) return showToast("Wrong Password!");
+        await _supabase.from('app_screenshots').delete().eq('id', sId);
+        location.reload();
+    }
+
+    function closeDetail() { document.getElementById('detail-page').style.display = 'none'; document.body.style.overflow = 'auto'; }
+    function searchApps() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        renderHome(allApps.filter(a => a.app_name.toLowerCase().includes(q)));
+    }
+    window.addEventListener('online', () => document.getElementById('offline-screen').style.display = 'none');
+    window.addEventListener('offline', () => document.getElementById('offline-screen').style.display = 'flex');
+     function filterByDeveloper(devName) {
+    // 1. Close the current app detail page
+    closeDetail();
+    
+    // 2. Filter allApps to find only those by this developer
+    const devApps = allApps.filter(a => (a.developer || 'GT Admin') === devName);
+    
+    // 3. Clear the search input to avoid confusion
+    document.getElementById('searchInput').value = devName;
+    
+    // 4. Render the results with a special header
+    const container = document.getElementById('store-front');
+    container.innerHTML = `
+        <div class="shelf-title">Apps by ${devName}</div>
+        <div class="app-row">
+            ${devApps.map(app => `
+                <div class="app-item" onclick="openDetail(${app.id})">
+                    <div class="shimmer-box" style="width:100px; height:100px; margin:0 auto;">
+                        <img src="${app.app_logo_url}" onload="this.style.opacity='1'">
+                    </div>
+                    <p>${app.app_name}</p>
+                </div>
+            `).join('')}
+        </div>
+        <button onclick="location.reload()" style="margin:20px; background:var(--card); color:var(--primary); border:none; padding:12px; border-radius:20px; width:calc(100% - 40px); font-weight:bold; cursor:pointer;">← Back to All Apps</button>
+    `;
+        }
     init();
     </script>
 </body>
