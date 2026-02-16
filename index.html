@@ -174,8 +174,10 @@
                 <div>
                     <h1 style="margin:0; font-size:24px;">${app.app_name}</h1>
                     <p style="margin:5px 0 0; color:var(--primary); font-size:14px;">
-                        ${app.category} ・ <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:underline; cursor:pointer;">${app.developer || 'GT Admin'}</span>
-                    </p>
+    <span onclick="filterByDeveloper('${app.developer || 'GT Admin'}')" style="text-decoration:none; color: #3b82f6; font-weight: bold; cursor:pointer;">
+        ${app.developer || 'GT Admin'}
+    </span>
+</p>
                 </div>
             </div>
             ${isAdmin ? `<button class="btn-delete" onclick="deleteApp(${app.id})">DELETE</button>` : ''}
